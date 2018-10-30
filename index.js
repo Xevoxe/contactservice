@@ -1,6 +1,18 @@
 const webServer = require('./services/web-server');
+const database = require('./d_apis/db-mongo');
+const dotenv = require('dotenv');
 
+dotenv.config();
 async function startup(){
+    try{
+        console.log("Initializing Database Service")
+        await database.initialize();
+
+    }catch (err){
+        console.error(err);
+        process.exit(1);
+    }
+
     try{
         console.log("Starting Server");
         await webServer.initialize();
@@ -14,6 +26,15 @@ async function shutdown(e){
     let err = e;
 
     console.log('Shutting down');
+
+    try{
+        console.log('Closing down database service');
+        await database.close();
+    }catch(e){
+        console.log('Encoutnered error', e);
+        err = err || e;
+    }
+
     try{
         console.log('Closing web server module');
         await webServer.shutdown();
